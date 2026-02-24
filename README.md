@@ -1,1 +1,1 @@
-# mcp-for-jakartaee
+# An MCP Server for Jakarta EE
