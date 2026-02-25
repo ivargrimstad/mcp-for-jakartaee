@@ -24,12 +24,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.omnifaces</groupId>
-            <artifactId>omnihai</artifactId>
-            <version>1.2</version>
-        </dependency>
-
-        <dependency>
             <groupId>za.co.sindi</groupId>
             <artifactId>sindi-ai-mcp-server-runtime-rest</artifactId>
             <version>0.0.1-SNAPSHOT</version>
