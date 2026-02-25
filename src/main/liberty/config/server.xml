@@ -10,6 +10,6 @@
 
     <httpEndpoint id="defaultHttpEndpoint"
                   httpPort="8080"/>
-    <webApplication location="dukes.war" contextRoot="/dukes"/>
+    <webApplication location="dukes-mcp.war" contextRoot="/dukes-mcp"/>
 
 </server>
