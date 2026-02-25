@@ -54,7 +54,7 @@
                     <runtimeArtifact>
                         <groupId>io.openliberty.beta</groupId>
                         <artifactId>openliberty-runtime</artifactId>
-                        <version>26.0.0.1-beta</version>
+                        <version>26.0.0.3-beta</version>
                         <type>zip</type>
                     </runtimeArtifact>
 
@@ -68,7 +68,7 @@
                 <configuration>
                     <feature-packs>
                         <feature-pack>
-                            <location>org.wildfly:wildfly-galleon-pack:39.0.0.Final</location>
+                            <location>org.wildfly:wildfly-galleon-pack:39.0.1.Final</location>
                         </feature-pack>
                     </feature-packs>
                     <layers>
@@ -85,15 +85,12 @@
     <profiles>
         <profile>
             <id>payara</id>
-            <properties>
-                <maven.compiler.release>23</maven.compiler.release>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.cargo</groupId>
                         <artifactId>cargo-maven3-plugin</artifactId>
-                        <version>1.10.18</version>
+                        <version>1.10.26</version>
                         <configuration>
                             <container>
                                 <containerId>payara</containerId>

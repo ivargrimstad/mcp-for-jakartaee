@@ -5,6 +5,8 @@
         <feature>jsonb</feature>
         <feature>jsonp</feature>
         <feature>cdi</feature>
+        <feature>servlet</feature>
+        <feature>concurrent</feature>
         <feature>expressionLanguage</feature>
     </featureManager>
 
