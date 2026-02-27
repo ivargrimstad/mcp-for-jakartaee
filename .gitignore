@@ -15,3 +15,11 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+.kiro
+.idea
+.vscode
+.jqwik-database
+DEPENDENCIES.md
+PROJECT_SETUP.md
+overlays
