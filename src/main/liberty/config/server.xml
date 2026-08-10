@@ -14,6 +14,18 @@
 
     <httpEndpoint id="defaultHttpEndpoint"
                   httpPort="8080"/>
+
+    <!--
+        To enable the database_query tool and db://schema resource, add a datasource here.
+        Example for Derby embedded:
+            <dataSource id="DefaultDataSource">
+                <jdbcDriver libraryRef="DerbyLib"/>
+                <properties.derby.embedded databaseName="memory:mcpdb" createDatabase="create"/>
+            </dataSource>
+            <library id="DerbyLib">
+                <fileset dir="/path/to/derby/lib" includes="derby.jar"/>
+            </library>
+    -->
     <webApplication location="dukes-mcp.war" contextRoot="/dukes-mcp"/>
 
 </server>

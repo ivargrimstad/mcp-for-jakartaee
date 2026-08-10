@@ -6,6 +6,7 @@ import dukes.mcp.service.MCPProtocolHandler;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -65,7 +66,7 @@ import java.util.logging.Logger;
 @Path("/mcp")
 @RequestScoped
 @Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+@Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.WILDCARD})
 public class MCPEndpoint {
     
     private static final Logger LOGGER = Logger.getLogger(MCPEndpoint.class.getName());
@@ -91,6 +92,23 @@ public class MCPEndpoint {
      * @param request the JSON-RPC request from the client
      * @return HTTP response with JSON-RPC response body and status 200
      */
+    /**
+     * Handles unsupported GET requests to the MCP endpoint.
+     *
+     * <p>MCP clients using the Streamable HTTP transport send a GET probe to discover
+     * the server. This endpoint returns 405 with an {@code Allow: POST} header so the
+     * client understands only POST is supported, without routing through the generic
+     * exception mapper (which would produce a malformed JSON-RPC error body).</p>
+     *
+     * @return HTTP 405 with Allow header
+     */
+    @GET
+    public Response rejectGet() {
+        return Response.status(Response.Status.METHOD_NOT_ALLOWED)
+                .header("Allow", "POST")
+                .build();
+    }
+
     @POST
     public Response handleRequest(JsonRpcRequest request) {
         LOGGER.log(Level.FINE, "Received MCP request: {0}", request);

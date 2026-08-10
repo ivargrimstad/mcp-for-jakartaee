@@ -166,8 +166,9 @@ class DatabaseQueryToolTest {
         assertTrue(result.getIsError());
         
         String errorMessage = result.getContent().get(0).getText();
-        assertTrue(errorMessage.contains("EntityManager") || 
+        assertTrue(errorMessage.contains("EntityManager") ||
                    errorMessage.contains("not available") ||
-                   errorMessage.contains("failed"));
+                   errorMessage.contains("failed") ||
+                   errorMessage.contains("No database configured"));
     }
 }

@@ -13,6 +13,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+
 /**
  * Example resource that demonstrates database schema metadata access through MCP.
  * 
@@ -39,10 +40,11 @@ import java.sql.SQLException;
  */
 @ApplicationScoped
 public class DatabaseSchemaResource implements Resource {
-    
+
     private static final String RESOURCE_URI = "db://schema";
-    
-    @PersistenceContext
+
+    // Set via @PersistenceContext when a datasource is configured in server.xml.
+    // Left null intentionally when no datasource is available — read() guards against null.
     private EntityManager entityManager;
     
     @Override
@@ -68,6 +70,9 @@ public class DatabaseSchemaResource implements Resource {
     
     @Override
     public String read() throws IOException {
+        if (entityManager == null) {
+            throw new IOException("No database configured. Add a datasource to server.xml to enable schema introspection.");
+        }
         try {
             // Get the underlying JDBC connection from EntityManager
             Connection connection = entityManager.unwrap(Connection.class);

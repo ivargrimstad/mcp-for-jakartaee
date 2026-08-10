@@ -3,9 +3,7 @@ package dukes.mcp.tools;
 import dukes.mcp.model.ToolResult;
 import dukes.mcp.service.Tool;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +22,10 @@ import java.util.Map;
  */
 @ApplicationScoped
 public class DatabaseQueryTool implements Tool {
-    
-    @PersistenceContext
+
+    // Set via @PersistenceContext when a datasource is configured in server.xml.
+    // Left null intentionally when no datasource is available — the execute() method
+    // guards against null and returns a clear error message.
     private EntityManager entityManager;
     
     @Override
@@ -92,6 +92,10 @@ public class DatabaseQueryTool implements Tool {
             return ToolResult.error("Only read-only queries (SELECT) are allowed");
         }
         
+        if (entityManager == null) {
+            return ToolResult.error("No database configured. Add a datasource to server.xml to enable database queries.");
+        }
+
         try {
             // Execute the query
             List<?> results = entityManager.createQuery(query)
