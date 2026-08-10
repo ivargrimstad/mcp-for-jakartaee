@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 /**
  * ApplicationScoped CDI bean that handles MCP protocol requests and manages protocol state.
  * 
@@ -57,7 +58,12 @@ import java.util.logging.Logger;
 public class MCPProtocolHandler {
     
     private static final Logger LOGGER = Logger.getLogger(MCPProtocolHandler.class.getName());
-    
+
+    /**
+     * Shared, thread-safe JSON-B instance used for parameter deserialisation.
+     */
+    private static final Jsonb JSONB = JsonbBuilder.create();
+
     /**
      * MCP protocol version supported by this server.
      */
@@ -78,7 +84,9 @@ public class MCPProtocolHandler {
     private static final int ERROR_INVALID_PARAMS = -32602;
     private static final int ERROR_INTERNAL_ERROR = -32603;
     private static final int ERROR_SERVER_NOT_INITIALIZED = -32002;
-    
+    private static final int ERROR_RESOURCE_NOT_FOUND = -32001;
+    private static final int ERROR_PROMPT_NOT_FOUND = -32001;
+
     /**
      * Protocol state flag indicating whether the server has been initialized.
      */
@@ -120,15 +128,21 @@ public class MCPProtocolHandler {
             Object id = request.getId();
             
             LOGGER.log(Level.FINE, "Processing request: method={0}, id={1}", new Object[]{method, id});
-            
-            // Step 2: Check if server needs to be initialized (except for initialize method)
+
+            // Step 2: Handle notifications (requests without an id) — must produce no response
+            if (request.isNotification()) {
+                handleNotification(method);
+                return null;
+            }
+
+            // Step 3: Check if server needs to be initialized (except for initialize method)
             if (!initialized.get() && !"initialize".equals(method)) {
                 LOGGER.log(Level.WARNING, "Server not initialized, rejecting method: {0}", method);
-                return JsonRpcResponse.error(id, ERROR_SERVER_NOT_INITIALIZED, 
+                return JsonRpcResponse.error(id, ERROR_SERVER_NOT_INITIALIZED,
                         "Server not initialized. Call 'initialize' method first.");
             }
             
-            // Step 3: Route to appropriate handler based on method
+            // Step 4: Route to appropriate handler based on method
             Object result = switch (method) {
                 case "initialize" -> handleInitialize(parseParams(request.getParams(), InitializeParams.class));
                 case "tools/list" -> handleToolsList();
@@ -149,25 +163,44 @@ public class MCPProtocolHandler {
                 default -> throw new MethodNotFoundException("Unknown method: " + method);
             };
             
-            // Step 4: Build success response
+            // Step 5: Build success response
             LOGGER.log(Level.FINE, "Request processed successfully: method={0}", method);
             return JsonRpcResponse.success(id, result);
             
         } catch (JsonRpcException e) {
-            // Step 5: Handle protocol errors
+            // Step 6: Handle protocol errors
             LOGGER.log(Level.WARNING, "JSON-RPC error: " + e.getMessage(), e);
             return JsonRpcResponse.error(request.getId(), e.getCode(), e.getMessage(), e.getData());
         } catch (MethodNotFoundException e) {
-            // Step 6: Handle method not found
+            // Step 7: Handle method not found
             LOGGER.log(Level.WARNING, "Method not found: " + e.getMessage(), e);
             return JsonRpcResponse.error(request.getId(), ERROR_METHOD_NOT_FOUND, e.getMessage());
         } catch (Exception e) {
-            // Step 7: Handle unexpected errors
+            // Step 8: Handle unexpected errors
             LOGGER.log(Level.SEVERE, "Internal error processing request", e);
-            return JsonRpcResponse.error(request.getId(), ERROR_INTERNAL_ERROR, 
+            return JsonRpcResponse.error(request.getId(), ERROR_INTERNAL_ERROR,
                     "Internal error", e.getMessage());
         }
     }
+
+    /**
+     * Handles JSON-RPC notifications (requests without an id).
+     *
+     * <p>Per JSON-RPC 2.0 spec, notifications must not produce a response.
+     * Unknown notification methods are silently ignored (no error response).</p>
+     *
+     * @param method the notification method name
+     */
+    private void handleNotification(String method) {
+        switch (method) {
+            case "notifications/initialized" -> {
+                LOGGER.log(Level.INFO, "Client sent notifications/initialized — server is ready");
+                initialized.set(true);
+            }
+            default -> LOGGER.log(Level.FINE, "Ignoring unknown notification: {0}", method);
+        }
+    }
+
     
     /**
      * Handles the initialize method.
@@ -263,11 +296,11 @@ public class MCPProtocolHandler {
             
         } catch (ResourceManager.ResourceNotFoundException e) {
             // Resource not found - return JSON-RPC error
-            throw new JsonRpcException(ERROR_SERVER_NOT_INITIALIZED, 
+            throw new JsonRpcException(ERROR_RESOURCE_NOT_FOUND,
                     "Resource not found: " + uri, null);
         } catch (ResourceManager.ResourceReadException e) {
             // Resource read error - return JSON-RPC error
-            throw new JsonRpcException(ERROR_INTERNAL_ERROR, 
+            throw new JsonRpcException(ERROR_INTERNAL_ERROR,
                     "Failed to read resource: " + uri, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
         }
     }
@@ -308,7 +341,7 @@ public class MCPProtocolHandler {
             
         } catch (PromptManager.PromptNotFoundException e) {
             // Prompt not found - return JSON-RPC error
-            throw new JsonRpcException(ERROR_SERVER_NOT_INITIALIZED, 
+            throw new JsonRpcException(ERROR_PROMPT_NOT_FOUND,
                     "Prompt not found: " + promptName, null);
         } catch (PromptManager.PromptArgumentException e) {
             // Invalid arguments - return JSON-RPC error
@@ -360,10 +393,10 @@ public class MCPProtocolHandler {
             return null;
         }
         
-        try (Jsonb jsonb = JsonbBuilder.create()) {
-            // Convert params to JSON string and then to target class
-            String paramsJson = jsonb.toJson(params);
-            return jsonb.fromJson(paramsJson, targetClass);
+        try {
+            // Convert params to JSON string and then to target class using shared Jsonb instance
+            String paramsJson = JSONB.toJson(params);
+            return JSONB.fromJson(paramsJson, targetClass);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to parse parameters", e);
             throw new JsonRpcException(ERROR_INVALID_PARAMS, 

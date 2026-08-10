@@ -1,5 +1,7 @@
 package dukes.mcp.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
@@ -55,7 +57,18 @@ import java.util.stream.Collectors;
 public class ToolRegistry {
     
     private static final Logger LOGGER = Logger.getLogger(ToolRegistry.class.getName());
-    
+
+    /**
+     * Shared, thread-safe JSON-B instance used for schema/argument serialisation.
+     */
+    private static final Jsonb JSONB = JsonbBuilder.create();
+
+    /**
+     * Shared, thread-safe Jackson ObjectMapper used only for JSON Schema validation
+     * (networknt json-schema-validator requires a Jackson JsonNode).
+     */
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     /**
      * Thread-safe map storing registered tools by name.
      */
@@ -209,20 +222,17 @@ public class ToolRegistry {
      * @return null if validation passes, or an error message describing validation failures
      */
     private String validateArguments(Object schemaObject, Map<String, Object> arguments) {
-        try (Jsonb jsonb = JsonbBuilder.create()) {
-            // Convert schema object to JSON string
-            String schemaJson = jsonb.toJson(schemaObject);
-            
+        try {
+            // Convert schema object to JSON string using shared Jsonb instance
+            String schemaJson = JSONB.toJson(schemaObject);
+
             // Create JSON Schema validator
             JsonSchema schema = schemaFactory.getSchema(schemaJson);
-            
-            // Convert arguments to JSON string for validation
-            String argumentsJson = jsonb.toJson(arguments);
-            
-            // Parse JSON string to JsonNode for validation
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(argumentsJson);
-            
+
+            // Convert arguments to JSON string, then to a Jackson JsonNode for the validator
+            String argumentsJson = JSONB.toJson(arguments);
+            JsonNode jsonNode = OBJECT_MAPPER.readTree(argumentsJson);
+
             // Validate arguments
             Set<ValidationMessage> errors = schema.validate(jsonNode);
             

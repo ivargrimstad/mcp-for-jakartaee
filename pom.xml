@@ -38,14 +38,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- MCP Server REST Library -->
-        <dependency>
-            <groupId>za.co.sindi</groupId>
-            <artifactId>sindi-ai-mcp-server-rest</artifactId>
-            <version>0.0.3</version>
-            <type>war</type>
-        </dependency>
-
         <!-- JSON Schema Validation -->
         <dependency>
             <groupId>com.networknt</groupId>

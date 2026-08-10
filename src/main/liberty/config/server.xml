@@ -8,6 +8,8 @@
         <feature>servlet</feature>
         <feature>concurrent</feature>
         <feature>expressionLanguage</feature>
+        <!-- Required when DatabaseQueryTool / DatabaseSchemaResource are enabled -->
+        <feature>persistence</feature>
     </featureManager>
 
     <httpEndpoint id="defaultHttpEndpoint"

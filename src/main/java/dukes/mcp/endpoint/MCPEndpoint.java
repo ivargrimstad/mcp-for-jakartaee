@@ -98,7 +98,12 @@ public class MCPEndpoint {
         try {
             // Delegate to protocol handler
             JsonRpcResponse jsonRpcResponse = protocolHandler.processRequest(request);
-            
+
+            // Notifications (no id) produce a null response — return empty 200 per JSON-RPC 2.0 spec
+            if (jsonRpcResponse == null) {
+                return Response.ok().build();
+            }
+
             LOGGER.log(Level.FINE, "Returning MCP response: {0}", jsonRpcResponse);
             
             // Return JSON-RPC response with HTTP 200 status

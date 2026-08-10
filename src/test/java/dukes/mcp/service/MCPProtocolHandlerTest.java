@@ -388,7 +388,7 @@ class MCPProtocolHandlerTest {
         assertNotNull(response);
         assertEquals("1", response.getId());
         assertTrue(response.isError());
-        assertEquals(-32002, response.getError().getCode());
+        assertEquals(-32001, response.getError().getCode());
         assertTrue(response.getError().getMessage().contains("not found"));
     }
     
@@ -409,7 +409,7 @@ class MCPProtocolHandlerTest {
         assertNotNull(response);
         assertEquals("1", response.getId());
         assertTrue(response.isError());
-        assertEquals(-32002, response.getError().getCode());
+        assertEquals(-32001, response.getError().getCode());
         assertTrue(response.getError().getMessage().contains("not found"));
     }
     
