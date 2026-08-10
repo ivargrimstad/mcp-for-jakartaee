@@ -112,20 +112,19 @@ public class DataAnalysisPrompt implements Prompt {
         }
         
         // Build the prompt content
-        StringBuilder content = new StringBuilder();
-        content.append("Please analyze the following ").append(dataType);
-        content.append(" with the goal to: ").append(analysisGoal).append(".\n\n");
-        
-        content.append("In your analysis, please:\n");
-        content.append("- Examine the data structure and key characteristics\n");
-        content.append("- Identify patterns, trends, or anomalies relevant to the goal\n");
-        content.append("- Provide statistical insights where applicable\n");
-        content.append("- Highlight any data quality issues or limitations\n");
-        content.append("- Offer actionable recommendations based on the findings\n");
-        content.append("- Suggest visualizations that would help communicate the results\n\n");
-        
-        content.append("Focus specifically on: ").append(analysisGoal);
-        
-        return List.of(PromptMessage.user(content.toString()));
+        String content = """
+                Please analyze the following %s with the goal to: %s.
+
+                In your analysis, please:
+                - Examine the data structure and key characteristics
+                - Identify patterns, trends, or anomalies relevant to the goal
+                - Provide statistical insights where applicable
+                - Highlight any data quality issues or limitations
+                - Offer actionable recommendations based on the findings
+                - Suggest visualizations that would help communicate the results
+
+                Focus specifically on: %s""".formatted(dataType, analysisGoal, analysisGoal);
+
+        return List.of(PromptMessage.user(content));
     }
 }

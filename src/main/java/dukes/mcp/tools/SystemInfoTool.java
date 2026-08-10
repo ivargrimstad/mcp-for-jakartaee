@@ -80,65 +80,93 @@ public class SystemInfoTool implements Tool {
             }
             
             // Build system information output
-            StringBuilder output = new StringBuilder();
-            output.append("=== System Information ===\n\n");
-            
-            // Java information
-            output.append("Java Version: ").append(System.getProperty("java.version")).append("\n");
-            output.append("Java Vendor: ").append(System.getProperty("java.vendor")).append("\n");
-            output.append("Java Home: ").append(System.getProperty("java.home")).append("\n");
-            output.append("Java VM: ").append(System.getProperty("java.vm.name"))
-                  .append(" (").append(System.getProperty("java.vm.version")).append(")\n\n");
-            
-            // Operating system information
-            output.append("Operating System: ").append(System.getProperty("os.name")).append("\n");
-            output.append("OS Version: ").append(System.getProperty("os.version")).append("\n");
-            output.append("OS Architecture: ").append(System.getProperty("os.arch")).append("\n");
-            output.append("Available Processors: ").append(Runtime.getRuntime().availableProcessors()).append("\n\n");
-            
+            String output = """
+                    === System Information ===
+
+                    Java Version: %s
+                    Java Vendor: %s
+                    Java Home: %s
+                    Java VM: %s (%s)
+
+                    Operating System: %s
+                    OS Version: %s
+                    OS Architecture: %s
+                    Available Processors: %d
+                    """.formatted(
+                    System.getProperty("java.version"),
+                    System.getProperty("java.vendor"),
+                    System.getProperty("java.home"),
+                    System.getProperty("java.vm.name"),
+                    System.getProperty("java.vm.version"),
+                    System.getProperty("os.name"),
+                    System.getProperty("os.version"),
+                    System.getProperty("os.arch"),
+                    Runtime.getRuntime().availableProcessors());
+
             // Memory information (if requested)
             if (includeMemory) {
-                output.append("=== Memory Information ===\n\n");
-                
                 Runtime runtime = Runtime.getRuntime();
                 long maxMemory = runtime.maxMemory();
                 long totalMemory = runtime.totalMemory();
                 long freeMemory = runtime.freeMemory();
                 long usedMemory = totalMemory - freeMemory;
-                
-                output.append("Max Memory: ").append(formatBytes(maxMemory)).append("\n");
-                output.append("Total Memory: ").append(formatBytes(totalMemory)).append("\n");
-                output.append("Used Memory: ").append(formatBytes(usedMemory)).append("\n");
-                output.append("Free Memory: ").append(formatBytes(freeMemory)).append("\n");
-                
-                // Add heap memory details
+
                 MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
                 MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
                 MemoryUsage nonHeapUsage = memoryBean.getNonHeapMemoryUsage();
-                
-                output.append("\nHeap Memory:\n");
-                output.append("  Used: ").append(formatBytes(heapUsage.getUsed())).append("\n");
-                output.append("  Committed: ").append(formatBytes(heapUsage.getCommitted())).append("\n");
-                output.append("  Max: ").append(formatBytes(heapUsage.getMax())).append("\n");
-                
-                output.append("\nNon-Heap Memory:\n");
-                output.append("  Used: ").append(formatBytes(nonHeapUsage.getUsed())).append("\n");
-                output.append("  Committed: ").append(formatBytes(nonHeapUsage.getCommitted())).append("\n");
-                output.append("  Max: ").append(formatBytes(nonHeapUsage.getMax())).append("\n\n");
+
+                output += """
+                        === Memory Information ===
+
+                        Max Memory: %s
+                        Total Memory: %s
+                        Used Memory: %s
+                        Free Memory: %s
+
+                        Heap Memory:
+                          Used: %s
+                          Committed: %s
+                          Max: %s
+
+                        Non-Heap Memory:
+                          Used: %s
+                          Committed: %s
+                          Max: %s
+
+                        """.formatted(
+                        formatBytes(maxMemory),
+                        formatBytes(totalMemory),
+                        formatBytes(usedMemory),
+                        formatBytes(freeMemory),
+                        formatBytes(heapUsage.getUsed()),
+                        formatBytes(heapUsage.getCommitted()),
+                        formatBytes(heapUsage.getMax()),
+                        formatBytes(nonHeapUsage.getUsed()),
+                        formatBytes(nonHeapUsage.getCommitted()),
+                        formatBytes(nonHeapUsage.getMax()));
             }
-            
+
             // Additional system properties (if requested)
             if (includeProperties) {
-                output.append("=== Additional Properties ===\n\n");
-                output.append("User Name: ").append(System.getProperty("user.name")).append("\n");
-                output.append("User Home: ").append(System.getProperty("user.home")).append("\n");
-                output.append("User Directory: ").append(System.getProperty("user.dir")).append("\n");
-                output.append("File Separator: ").append(System.getProperty("file.separator")).append("\n");
-                output.append("Path Separator: ").append(System.getProperty("path.separator")).append("\n");
-                output.append("Line Separator: ").append(escapeLineBreaks(System.getProperty("line.separator"))).append("\n");
+                output += """
+                        === Additional Properties ===
+
+                        User Name: %s
+                        User Home: %s
+                        User Directory: %s
+                        File Separator: %s
+                        Path Separator: %s
+                        Line Separator: %s
+                        """.formatted(
+                        System.getProperty("user.name"),
+                        System.getProperty("user.home"),
+                        System.getProperty("user.dir"),
+                        System.getProperty("file.separator"),
+                        System.getProperty("path.separator"),
+                        escapeLineBreaks(System.getProperty("line.separator")));
             }
-            
-            return ToolResult.success(output.toString());
+
+            return ToolResult.success(output);
             
         } catch (SecurityException e) {
             // Handle security exceptions when accessing system properties

@@ -110,23 +110,20 @@ public class CodeReviewPrompt implements Prompt {
         String context = arguments.get("context");
         
         // Build the prompt content
-        StringBuilder content = new StringBuilder();
-        content.append("Please review the following ").append(language).append(" code");
-        
-        if (context != null && !context.trim().isEmpty()) {
-            content.append(" with focus on: ").append(context);
-        } else {
-            content.append(" for best practices, potential bugs, and code quality");
-        }
-        
-        content.append(".\n\n");
-        content.append("Provide specific feedback on:\n");
-        content.append("- Code correctness and potential bugs\n");
-        content.append("- Code style and readability\n");
-        content.append("- Performance considerations\n");
-        content.append("- Security vulnerabilities\n");
-        content.append("- Best practices for ").append(language);
-        
-        return List.of(PromptMessage.user(content.toString()));
+        String focus = (context != null && !context.trim().isEmpty())
+                ? "with focus on: " + context
+                : "for best practices, potential bugs, and code quality";
+
+        String content = """
+                Please review the following %s code %s.
+
+                Provide specific feedback on:
+                - Code correctness and potential bugs
+                - Code style and readability
+                - Performance considerations
+                - Security vulnerabilities
+                - Best practices for %s""".formatted(language, focus, language);
+
+        return List.of(PromptMessage.user(content));
     }
 }

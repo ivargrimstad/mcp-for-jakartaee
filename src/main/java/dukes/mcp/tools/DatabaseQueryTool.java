@@ -103,16 +103,14 @@ public class DatabaseQueryTool implements Tool {
                 return ToolResult.success("Query executed successfully. No results found.");
             }
             
-            StringBuilder output = new StringBuilder();
-            output.append("Query executed successfully. Found ")
-                  .append(results.size())
-                  .append(" result(s):\n\n");
-            
+            StringBuilder output = new StringBuilder(
+                    "Query executed successfully. Found %d result(s):\n\n".formatted(results.size()));
+
             // Format each result
             for (int i = 0; i < results.size(); i++) {
                 Object result = results.get(i);
                 output.append(i + 1).append(". ");
-                
+
                 if (result == null) {
                     output.append("null");
                 } else if (result instanceof Object[]) {
@@ -130,12 +128,12 @@ public class DatabaseQueryTool implements Tool {
                 }
                 output.append("\n");
             }
-            
+
             // Add truncation notice if results were limited
             if (results.size() == maxResults) {
-                output.append("\n(Results limited to ").append(maxResults).append(" rows)");
+                output.append("\n(Results limited to %d rows)".formatted(maxResults));
             }
-            
+
             return ToolResult.success(output.toString());
             
         } catch (PersistenceException e) {
