@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "dukes-mcp": {
+      "type": "streamable-http",
+      "url": "http://localhost:8080/dukes-mcp/mcp",
+      "disabled": false
+    }
+  }
+}
